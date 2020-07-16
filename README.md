@@ -1,16 +1,16 @@
 # dopamine-RL
 Dopamine-based reinforcement learning to control a 2 DoF arm
-##Goal	
+## Goal	
 Dopamine-based RL on 2-DoF simplified arm
-##Expected Time	
+## Expected Time	
 1.5 weeks
-##Purpose	
+## Purpose	
 1.Build the control model
 2.Provide postion notion for self model
-##Content	
+## Content	
 1.Implement the SNN control model
 2.Learn Brian2 
-##Output
+## Output
 1.Prioproception layer
 2.Motor layer
 3.Position coding for vision
