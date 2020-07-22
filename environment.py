@@ -1,5 +1,6 @@
 from math import *
 import random
+import matplotlib.pyplot as plt
 
 # Variable for basic angles
 upper_length = 3
@@ -58,6 +59,24 @@ def valid_position_range(line_y):
     return (left_x,right_x)
 
 if __name__ == '__main__':
-    left_x,right_x, = valid_position_range(3)
-    target_position = random.uniform(left_x,right_x)
-    print target_position
+    n = 0
+    line_y = 3
+    left_x, right_x, = valid_position_range(line_y)
+    target_x = random.uniform(left_x, right_x)
+    shoulder_angle = random.uniform(min_shoulder, max_shoulder)
+    elbow_angle = random.uniform(min_elbow, max_elbow)
+    while n <100:
+        hand_x, hand_y = arm_position(shoulder_angle,elbow_angle)
+        fig = plt.figure()
+        elbow_x = upper_length*cos(radians(shoulder_angle))
+        elbow_y = upper_length*sin(radians(shoulder_angle))
+        plt.axis([-6,6,-6,6])
+        plt.plot([0,elbow_x],[0,elbow_y],color = 'r')
+        plt.plot([elbow_x,hand_x],[elbow_y,hand_y],color = 'r')
+        plt.scatter([0,elbow_x,hand_x],[0,elbow_y,hand_y],color = 'b')
+        plt.scatter(target_x,line_y,color='g')
+        plt.show()
+        n+=1
+        shoulder_angle += 0.5
+        elbow_angle += 0.1
+
