@@ -1,9 +1,16 @@
-import math
-print (math.sin(math.radians(30)))
-a = 15
-if a <30:
-    print(1)
-elif a < 20:
-    print(2)
-else:
-    print (3)
+import numpy as np
+from matplotlib import pyplot as plt
+from matplotlib import animation
+
+fig = plt.figure()
+data = np.random.random((255, 255))
+im = plt.imshow(data, cmap='gray')
+
+# animation function.  This is called sequentially
+def animate(i):
+    data = np.random.random((255, 255))
+    im.set_array(data)
+    return [im]
+
+anim = animation.FuncAnimation(fig, animate, frames=200, interval=60, blit=True)
+plt.show()

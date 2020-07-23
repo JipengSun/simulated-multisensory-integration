@@ -1,6 +1,10 @@
 from math import *
 import random
 import matplotlib.pyplot as plt
+import matplotlib.animation as anim
+import numpy as np
+import time
+import sys
 
 # Variable for basic angles
 upper_length = 3
@@ -57,7 +61,17 @@ def valid_position_range(line_y):
     if right_min_limit_y <= line_y <= max_y:
         right_x = sqrt(max_y**2 - line_y**2)
     return (left_x,right_x)
-
+def policy_update(action_choice,current_error, previous_error, action_policy):
+    delta_error = current_error - previous_error
+    action_policy[action_choice] -= delta_error
+    return action_policy
+def action_generator(action_index,policy):
+    prob_p = np.zeros(4)
+    for i in range(len(prob_p)):
+        prob_p[i] = exp(policy[i])
+    prob_p /= sum(prob_p)
+    temp = np.random.choice(action_index,size=1,p=prob_p)
+    return temp[0]
 if __name__ == '__main__':
     n = 0
     line_y = 3
@@ -65,18 +79,72 @@ if __name__ == '__main__':
     target_x = random.uniform(left_x, right_x)
     shoulder_angle = random.uniform(min_shoulder, max_shoulder)
     elbow_angle = random.uniform(min_elbow, max_elbow)
-    while n <100:
-        hand_x, hand_y = arm_position(shoulder_angle,elbow_angle)
-        fig = plt.figure()
+    target_position = (target_x,line_y)
+    hand_position = arm_position(shoulder_angle, elbow_angle)
+    action_list = [(2,0),(-2,0),(0,2),(0,2)]
+    action_index = list(range(0,len(action_list)))
+    policy = np.array([1,1,1,1],dtype=np.float)
+    x1 = []
+    y1 = []
+    x2 = []
+    y2 = []
+    current_error = positions_distance(hand_position, target_position)
+    while n < 500 and current_error > 0.5:
+        print(current_error)
         elbow_x = upper_length*cos(radians(shoulder_angle))
         elbow_y = upper_length*sin(radians(shoulder_angle))
-        plt.axis([-6,6,-6,6])
-        plt.plot([0,elbow_x],[0,elbow_y],color = 'r')
-        plt.plot([elbow_x,hand_x],[elbow_y,hand_y],color = 'r')
-        plt.scatter([0,elbow_x,hand_x],[0,elbow_y,hand_y],color = 'b')
-        plt.scatter(target_x,line_y,color='g')
-        plt.show()
-        n+=1
-        shoulder_angle += 0.5
-        elbow_angle += 0.1
+        x1.append(elbow_x)
+        y1.append(elbow_y)
+        hand_x, hand_y = hand_position
+        x2.append(hand_x)
+        y2.append(hand_y)
+        previous_error = positions_distance(hand_position,target_position)
+        action_choice = action_generator(action_index,policy)
+        d_shoulder,d_elbow = action_list[action_choice]
+        shoulder_angle += d_shoulder
+        elbow_angle += d_elbow
+        hand_position = arm_position(shoulder_angle, elbow_angle)
+        current_error = positions_distance(hand_position,target_position)
+        policy = policy_update(action_choice,current_error,previous_error,policy)
+        n += 1
+    #plt.show()
+    print(policy)
+    fig = plt.figure()
+    ax = plt.axes(xlim=(-6,6),ylim=(-6,6))
+    line, = ax.plot([],[],color='r')
+    line2, = ax.plot([],[],color='b')
+    line3, = ax.plot([],[],color='b')
+    plt.scatter(target_x, line_y, color='g')
+    it_text = ax.text(4, 5, '',fontsize=10)
+    def init():
+        line1x = [0, x1[0], x2[0]]
+        line1y = [0, y1[0], y2[0]]
+        print(1)
+        line.set_data(line1x, line1y)
+        line2.set_data(x1[0], y1[0])
+        line2.set_marker('o')
+        line3.set_data(x2[0], y2[0])
+        line3.set_marker('o')
+        it_text.set_text('Iteration: %d' % (0))
+        m = int(sys.stdin.readline())
+        return line, line2, line3, it_text,
+
+    def animate(i):
+        line1x = [0,x1[i],x2[i]]
+        line1y = [0,y1[i],y2[i]]
+        print(i)
+        line.set_data(line1x,line1y)
+        line2.set_data(x1[i],y1[i])
+        line2.set_marker('o')
+        line3.set_data(x2[i], y2[i])
+        line3.set_marker('o')
+        it_text.set_text('Iteration: %d'%(i))
+        return line,line2,line3,it_text,
+    ani = anim.FuncAnimation(fig,animate,range(len(x1)),init_func=init,interval=200,repeat=False)
+    #ani.save('2-dof-arm.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
+    anim.FFMpegFileWriter
+    plt.show()
+
+
+
 
