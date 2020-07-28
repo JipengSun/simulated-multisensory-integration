@@ -65,13 +65,26 @@ def policy_update(action_choice,current_error, previous_error, action_policy):
     delta_error = current_error - previous_error
     action_policy[action_choice] -= delta_error
     return action_policy
-def action_generator(action_index,policy):
+def action_generator(action_index,policy,action_list,shoulder_angle,elbow_angle):
+    is_safe = False
+    ban = []
     prob_p = np.zeros(4)
     for i in range(len(prob_p)):
         prob_p[i] = exp(policy[i])
     prob_p /= sum(prob_p)
-    temp = np.random.choice(action_index,size=1,p=prob_p)
+    while not is_safe:
+        temp = np.random.choice(action_index,size=1,p=prob_p)
+        while temp[0] in ban:
+            temp = np.random.choice(action_index,size=1,p=prob_p)
+        d_shoulder,d_elbow = action_list[temp[0]]
+        if min_shoulder <= (shoulder_angle + d_shoulder) <= max_shoulder and min_elbow <= (elbow_angle + d_elbow) <= max_elbow:
+            is_safe = True
+            print(policy)
+            print(shoulder_angle,elbow_angle)
+        else:
+            ban.append(temp[0])
     return temp[0]
+
 if __name__ == '__main__':
     n = 0
     line_y = 3
@@ -81,7 +94,7 @@ if __name__ == '__main__':
     elbow_angle = random.uniform(min_elbow, max_elbow)
     target_position = (target_x,line_y)
     hand_position = arm_position(shoulder_angle, elbow_angle)
-    action_list = [(2,0),(-2,0),(0,2),(0,2)]
+    action_list = [(3,0),(-3,0),(0,3),(0,-3)]
     action_index = list(range(0,len(action_list)))
     policy = np.array([1,1,1,1],dtype=np.float)
     x1 = []
@@ -99,7 +112,7 @@ if __name__ == '__main__':
         x2.append(hand_x)
         y2.append(hand_y)
         previous_error = positions_distance(hand_position,target_position)
-        action_choice = action_generator(action_index,policy)
+        action_choice = action_generator(action_index,policy,action_list,shoulder_angle,elbow_angle)
         d_shoulder,d_elbow = action_list[action_choice]
         shoulder_angle += d_shoulder
         elbow_angle += d_elbow
@@ -126,13 +139,12 @@ if __name__ == '__main__':
         line3.set_data(x2[0], y2[0])
         line3.set_marker('o')
         it_text.set_text('Iteration: %d' % (0))
-        m = int(sys.stdin.readline())
+        #m = int(sys.stdin.readline())
         return line, line2, line3, it_text,
 
     def animate(i):
         line1x = [0,x1[i],x2[i]]
         line1y = [0,y1[i],y2[i]]
-        print(i)
         line.set_data(line1x,line1y)
         line2.set_data(x1[i],y1[i])
         line2.set_marker('o')
@@ -142,7 +154,9 @@ if __name__ == '__main__':
         return line,line2,line3,it_text,
     ani = anim.FuncAnimation(fig,animate,range(len(x1)),init_func=init,interval=200,repeat=False)
     #ani.save('2-dof-arm.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
-    anim.FFMpegFileWriter
+    f = r"/Users/Jipeng/PycharmProjects/dopamine_rl/2-dof_video.mp4"
+    writervideo = anim.FFMpegWriter(fps=60)
+    ani.save(f, writer=writervideo)
     plt.show()
 
 
