@@ -3,6 +3,7 @@ import random
 import matplotlib.pyplot as plt
 import matplotlib.animation as anim
 import numpy as np
+import pandas as pd
 import time
 import sys
 
@@ -95,22 +96,41 @@ def action_generator(action_index,policy,action_list,shoulder_angle,elbow_angle)
 
 
 def target_reaching(target_x, target_y, max_iteration = 500, reaching_threshhold = 0.5, step_angle = 3):
-    n = 0
-    shoulder_angle = random.uniform(min_shoulder, max_shoulder)
-    elbow_angle = random.uniform(min_elbow, max_elbow)
-    target_position = (target_x, line_y)
-    hand_position = arm_position(shoulder_angle, elbow_angle)
-    action_list = [(step_angle, 0), (-step_angle, 0), (0, step_angle), (0, -step_angle)]
-    action_index = list(range(0, len(action_list)))
-    policy = np.array([1 for i in range(len(action_list))], dtype=np.float)
     # Data recording
     elbow_x_list = []
     elbow_y_list = []
     hand_x_list = []
     hand_y_list = []
+    elbow_angle_list = []
+    shoulder_angle_list = []
+    shoulder_angle = random.uniform(min_shoulder, max_shoulder)
+    shoulder_angle_list.append(shoulder_angle)
+    elbow_angle = random.uniform(min_elbow, max_elbow)
+    elbow_angle_list.append(elbow_angle)
+    target_position = (target_x, line_y)
+    hand_position = arm_position(shoulder_angle, elbow_angle)
+    action_list = [(step_angle, 0), (-step_angle, 0), (0, step_angle), (0, -step_angle)]
+    action_index = list(range(0, len(action_list)))
+    policy = np.array([1 for i in range(len(action_list))], dtype=np.float)
     current_error = positions_distance(hand_position, target_position)
+    elbow_x = upper_length * cos(radians(shoulder_angle))
+    elbow_y = upper_length * sin(radians(shoulder_angle))
+    elbow_x_list.append(elbow_x)
+    elbow_y_list.append(elbow_y)
+    hand_x, hand_y = hand_position
+    hand_x_list.append(hand_x)
+    hand_y_list.append(hand_y)
+    n = 0
     while n < max_iteration and current_error > reaching_threshhold:
         print(current_error)
+        previous_error = positions_distance(hand_position, target_position)
+        action_choice = action_generator(action_index, policy, action_list, shoulder_angle, elbow_angle)
+        d_shoulder, d_elbow = action_list[action_choice]
+        shoulder_angle += d_shoulder
+        shoulder_angle_list.append(shoulder_angle)
+        elbow_angle += d_elbow
+        elbow_angle_list.append(elbow_angle)
+        hand_position = arm_position(shoulder_angle, elbow_angle)
         elbow_x = upper_length * cos(radians(shoulder_angle))
         elbow_y = upper_length * sin(radians(shoulder_angle))
         elbow_x_list.append(elbow_x)
@@ -118,17 +138,11 @@ def target_reaching(target_x, target_y, max_iteration = 500, reaching_threshhold
         hand_x, hand_y = hand_position
         hand_x_list.append(hand_x)
         hand_y_list.append(hand_y)
-        previous_error = positions_distance(hand_position, target_position)
-        action_choice = action_generator(action_index, policy, action_list, shoulder_angle, elbow_angle)
-        d_shoulder, d_elbow = action_list[action_choice]
-        shoulder_angle += d_shoulder
-        elbow_angle += d_elbow
-        hand_position = arm_position(shoulder_angle, elbow_angle)
         current_error = positions_distance(hand_position, target_position)
         policy = policy_update(action_choice, current_error, previous_error, policy)
         n += 1
     print(policy)
-    return elbow_x_list, elbow_y_list, hand_x_list, hand_y_list
+    return elbow_x_list, elbow_y_list, hand_x_list, hand_y_list, shoulder_angle_list, elbow_angle_list
 
 
 def arm_animation(target_x, target_y, elbow_x_list, elbow_y_list, hand_x_list, hand_y_list):
@@ -177,8 +191,11 @@ if __name__ == '__main__':
     line_y = 3
     left_x, right_x, = valid_position_range(line_y)
     target_x = random.uniform(left_x, right_x)
-    elbow_x_list, elbow_y_list, hand_x_list, hand_y_list = target_reaching(target_x, line_y, max_iteration = 500, reaching_threshhold = 0.5, step_angle = 3)
+    elbow_x_list, elbow_y_list, hand_x_list, hand_y_list, shoulder_angle_list, elbow_angle_list \
+        = target_reaching(target_x, line_y, max_iteration = 500, reaching_threshhold = 0.5, step_angle = 3)
     arm_animation(target_x,line_y,elbow_x_list, elbow_y_list, hand_x_list, hand_y_list)
+    dataframe = pd.DataFrame({'elbow_x':elbow_x_list,'elbow_y':elbow_y_list,'hand_x':hand_x_list,'hand_y':hand_y_list,'shoulder_angle':shoulder_angle_list,'elbow_angle':elbow_angle_list})
+    dataframe.to_csv(r"/Users/Jipeng/PycharmProjects/simulated_multisensory_integration/simulated_data.csv")
 
 
 
