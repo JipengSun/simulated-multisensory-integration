@@ -85,79 +85,88 @@ def action_generator(action_index,policy,action_list,shoulder_angle,elbow_angle)
             ban.append(temp[0])
     return temp[0]
 
-if __name__ == '__main__':
+def target_reaching(target_x, target_y, max_iteration = 500, reaching_threshhold = 0.5, step_angle = 3):
     n = 0
-    line_y = 3
-    left_x, right_x, = valid_position_range(line_y)
-    target_x = random.uniform(left_x, right_x)
     shoulder_angle = random.uniform(min_shoulder, max_shoulder)
     elbow_angle = random.uniform(min_elbow, max_elbow)
-    target_position = (target_x,line_y)
+    target_position = (target_x, line_y)
     hand_position = arm_position(shoulder_angle, elbow_angle)
-    action_list = [(3,0),(-3,0),(0,3),(0,-3)]
-    action_index = list(range(0,len(action_list)))
-    policy = np.array([1,1,1,1],dtype=np.float)
-    x1 = []
-    y1 = []
-    x2 = []
-    y2 = []
+    action_list = [(step_angle, 0), (-step_angle, 0), (0, step_angle), (0, -step_angle)]
+    action_index = list(range(0, len(action_list)))
+    policy = np.array([1 for i in range(len(action_list))], dtype=np.float)
+    # Data recording
+    elbow_x_list = []
+    elbow_y_list = []
+    hand_x_list = []
+    hand_y_list = []
     current_error = positions_distance(hand_position, target_position)
-    while n < 500 and current_error > 0.5:
+    while n < max_iteration and current_error > reaching_threshhold:
         print(current_error)
-        elbow_x = upper_length*cos(radians(shoulder_angle))
-        elbow_y = upper_length*sin(radians(shoulder_angle))
-        x1.append(elbow_x)
-        y1.append(elbow_y)
+        elbow_x = upper_length * cos(radians(shoulder_angle))
+        elbow_y = upper_length * sin(radians(shoulder_angle))
+        elbow_x_list.append(elbow_x)
+        elbow_y_list.append(elbow_y)
         hand_x, hand_y = hand_position
-        x2.append(hand_x)
-        y2.append(hand_y)
-        previous_error = positions_distance(hand_position,target_position)
-        action_choice = action_generator(action_index,policy,action_list,shoulder_angle,elbow_angle)
-        d_shoulder,d_elbow = action_list[action_choice]
+        hand_x_list.append(hand_x)
+        hand_y_list.append(hand_y)
+        previous_error = positions_distance(hand_position, target_position)
+        action_choice = action_generator(action_index, policy, action_list, shoulder_angle, elbow_angle)
+        d_shoulder, d_elbow = action_list[action_choice]
         shoulder_angle += d_shoulder
         elbow_angle += d_elbow
         hand_position = arm_position(shoulder_angle, elbow_angle)
-        current_error = positions_distance(hand_position,target_position)
-        policy = policy_update(action_choice,current_error,previous_error,policy)
+        current_error = positions_distance(hand_position, target_position)
+        policy = policy_update(action_choice, current_error, previous_error, policy)
         n += 1
-    #plt.show()
     print(policy)
+    return elbow_x_list, elbow_y_list, hand_x_list, hand_y_list
+def arm_animation(target_x, target_y, elbow_x_list, elbow_y_list, hand_x_list, hand_y_list):
     fig = plt.figure()
-    ax = plt.axes(xlim=(-6,6),ylim=(-6,6))
-    line, = ax.plot([],[],color='r')
-    line2, = ax.plot([],[],color='b')
-    line3, = ax.plot([],[],color='b')
-    plt.scatter(target_x, line_y, color='g')
-    it_text = ax.text(4, 5, '',fontsize=10)
+    ax = plt.axes(xlim=(-6, 6), ylim=(-6, 6))
+    line, = ax.plot([], [], color='r')
+    line2, = ax.plot([], [], color='yellow')
+    line3, = ax.plot([], [], color='b')
+    plt.scatter(target_x, target_y, color='g')
+    it_text = ax.text(4, 5, '', fontsize=10)
+
     def init():
-        line1x = [0, x1[0], x2[0]]
-        line1y = [0, y1[0], y2[0]]
+        line1x = [0, elbow_x_list[0], hand_x_list[0]]
+        line1y = [0, elbow_y_list[0], hand_y_list[0]]
         print(1)
         line.set_data(line1x, line1y)
-        line2.set_data(x1[0], y1[0])
+        line2.set_data(elbow_x_list[0], elbow_y_list[0])
         line2.set_marker('o')
-        line3.set_data(x2[0], y2[0])
+        line3.set_data(hand_x_list[0], hand_y_list[0])
         line3.set_marker('o')
         it_text.set_text('Iteration: %d' % (0))
-        #m = int(sys.stdin.readline())
+        # m = int(sys.stdin.readline())
         return line, line2, line3, it_text,
 
     def animate(i):
-        line1x = [0,x1[i],x2[i]]
-        line1y = [0,y1[i],y2[i]]
-        line.set_data(line1x,line1y)
-        line2.set_data(x1[i],y1[i])
+        line1x = [0, elbow_x_list[i], hand_x_list[i]]
+        line1y = [0, elbow_y_list[i], hand_y_list[i]]
+        line.set_data(line1x, line1y)
+        line2.set_data(elbow_x_list[i], elbow_y_list[i])
         line2.set_marker('o')
-        line3.set_data(x2[i], y2[i])
+        line3.set_data(hand_x_list[i], hand_y_list[i])
         line3.set_marker('o')
-        it_text.set_text('Iteration: %d'%(i))
-        return line,line2,line3,it_text,
-    ani = anim.FuncAnimation(fig,animate,range(len(x1)),init_func=init,interval=200,repeat=False)
-    #ani.save('2-dof-arm.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
-    f = r"/Users/Jipeng/PycharmProjects/dopamine_rl/2-dof_video.mp4"
+        it_text.set_text('Iteration: %d' % (i))
+        return line, line2, line3, it_text,
+
+    ani = anim.FuncAnimation(fig, animate, range(len(elbow_x_list)), init_func=init, interval=200, repeat=False)
+    # ani.save('2-dof-arm.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
+    f = r"/Users/Jipeng/PycharmProjects/simulated_multisensory_integration/2-dof_video.mp4"
     writervideo = anim.FFMpegWriter(fps=60)
     ani.save(f, writer=writervideo)
     plt.show()
+
+if __name__ == '__main__':
+    # Randomly generate target position
+    line_y = 3
+    left_x, right_x, = valid_position_range(line_y)
+    target_x = random.uniform(left_x, right_x)
+    elbow_x_list, elbow_y_list, hand_x_list, hand_y_list = target_reaching(target_x, line_y, max_iteration = 500, reaching_threshhold = 0.5, step_angle = 3)
+    arm_animation(target_x,line_y,elbow_x_list, elbow_y_list, hand_x_list, hand_y_list)
 
 
 
