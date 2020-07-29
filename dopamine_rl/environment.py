@@ -23,8 +23,10 @@ def angle2muscle(shoulder_angle, elbow_angle):
     elbow_flex = 1 - elbow_ext
     return (shoulder_ext,shoulder_flex,elbow_ext,elbow_flex)
 
+
 def elbow_angle_reform(angle):
     pass
+
 
 def arm_position(shoulder_angle, elbow_angle):
     abs_elbow = 180 + shoulder_angle - elbow_angle
@@ -39,6 +41,8 @@ def positions_distance(arm_position,target_position):
     return sqrt((x_arm-x_target)**2 + (y_arm-y_target)**2)
 
 # Get valid target position range on a line
+
+
 def valid_position_range(line_y):
     # The law of cosines, calculate the limit of the y projection of forearm
     min_y = sqrt(upper_length**2 + fore_length**2 - 2*upper_length*fore_length*cos(radians(min_elbow)))
@@ -61,10 +65,14 @@ def valid_position_range(line_y):
     if right_min_limit_y <= line_y <= max_y:
         right_x = sqrt(max_y**2 - line_y**2)
     return (left_x,right_x)
+
+
 def policy_update(action_choice,current_error, previous_error, action_policy):
     delta_error = current_error - previous_error
     action_policy[action_choice] -= delta_error
     return action_policy
+
+
 def action_generator(action_index,policy,action_list,shoulder_angle,elbow_angle):
     is_safe = False
     ban = []
@@ -84,6 +92,7 @@ def action_generator(action_index,policy,action_list,shoulder_angle,elbow_angle)
         else:
             ban.append(temp[0])
     return temp[0]
+
 
 def target_reaching(target_x, target_y, max_iteration = 500, reaching_threshhold = 0.5, step_angle = 3):
     n = 0
@@ -120,6 +129,8 @@ def target_reaching(target_x, target_y, max_iteration = 500, reaching_threshhold
         n += 1
     print(policy)
     return elbow_x_list, elbow_y_list, hand_x_list, hand_y_list
+
+
 def arm_animation(target_x, target_y, elbow_x_list, elbow_y_list, hand_x_list, hand_y_list):
     fig = plt.figure()
     ax = plt.axes(xlim=(-6, 6), ylim=(-6, 6))
@@ -159,6 +170,7 @@ def arm_animation(target_x, target_y, elbow_x_list, elbow_y_list, hand_x_list, h
     writervideo = anim.FFMpegWriter(fps=60)
     ani.save(f, writer=writervideo)
     plt.show()
+
 
 if __name__ == '__main__':
     # Randomly generate target position
