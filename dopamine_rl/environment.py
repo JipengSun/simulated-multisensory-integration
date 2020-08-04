@@ -195,6 +195,7 @@ if __name__ == '__main__':
         = target_reaching(target_x, line_y, max_iteration = 500, reaching_threshhold = 0.5, step_angle = 3)
     arm_animation(target_x,line_y,elbow_x_list, elbow_y_list, hand_x_list, hand_y_list)
     dataframe = pd.DataFrame({'elbow_x':elbow_x_list,'elbow_y':elbow_y_list,'hand_x':hand_x_list,'hand_y':hand_y_list,'shoulder_angle':shoulder_angle_list,'elbow_angle':elbow_angle_list})
+    dataframe = dataframe.round(2)
     dataframe.to_csv(r"/Users/Jipeng/PycharmProjects/simulated_multisensory_integration/simulated_data.csv")
 
 
