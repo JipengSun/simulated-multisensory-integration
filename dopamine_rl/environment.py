@@ -83,19 +83,20 @@ def action_generator(action_index,policy,action_list,shoulder_angle,elbow_angle)
     prob_p /= sum(prob_p)
     while not is_safe:
         temp = np.random.choice(action_index,size=1,p=prob_p)
+        # BUGGY HERE!!!
         while temp[0] in ban:
             temp = np.random.choice(action_index,size=1,p=prob_p)
         d_shoulder,d_elbow = action_list[temp[0]]
         if min_shoulder <= (shoulder_angle + d_shoulder) <= max_shoulder and min_elbow <= (elbow_angle + d_elbow) <= max_elbow:
             is_safe = True
-            print(policy)
-            print(shoulder_angle,elbow_angle)
+            #print(policy)
+            #print(shoulder_angle,elbow_angle)
         else:
             ban.append(temp[0])
     return temp[0]
 
 
-def target_reaching(target_x, target_y, max_iteration = 500, reaching_threshhold = 0.5, step_angle = 3):
+def target_reaching(target_x, target_y, max_iteration = 100, reaching_threshhold = 0.5, step_angle = 3):
     # Data recording
     elbow_x_list = []
     elbow_y_list = []
@@ -122,7 +123,7 @@ def target_reaching(target_x, target_y, max_iteration = 500, reaching_threshhold
     hand_y_list.append(hand_y)
     n = 0
     while n < max_iteration and current_error > reaching_threshhold:
-        print(current_error)
+        #print(current_error)
         previous_error = positions_distance(hand_position, target_position)
         action_choice = action_generator(action_index, policy, action_list, shoulder_angle, elbow_angle)
         d_shoulder, d_elbow = action_list[action_choice]
@@ -141,7 +142,7 @@ def target_reaching(target_x, target_y, max_iteration = 500, reaching_threshhold
         current_error = positions_distance(hand_position, target_position)
         policy = policy_update(action_choice, current_error, previous_error, policy)
         n += 1
-    print(policy)
+    #print(policy)
     return elbow_x_list, elbow_y_list, hand_x_list, hand_y_list, shoulder_angle_list, elbow_angle_list
 
 
@@ -189,12 +190,33 @@ def arm_animation(target_x, target_y, elbow_x_list, elbow_y_list, hand_x_list, h
 if __name__ == '__main__':
     # Randomly generate target position
     line_y = 3
+    trial_num = 20
     left_x, right_x, = valid_position_range(line_y)
-    target_x = random.uniform(left_x, right_x)
-    elbow_x_list, elbow_y_list, hand_x_list, hand_y_list, shoulder_angle_list, elbow_angle_list \
-        = target_reaching(target_x, line_y, max_iteration = 500, reaching_threshhold = 0.5, step_angle = 3)
-    arm_animation(target_x,line_y,elbow_x_list, elbow_y_list, hand_x_list, hand_y_list)
-    dataframe = pd.DataFrame({'elbow_x':elbow_x_list,'elbow_y':elbow_y_list,'hand_x':hand_x_list,'hand_y':hand_y_list,'shoulder_angle':shoulder_angle_list,'elbow_angle':elbow_angle_list})
+    extotal = []
+    eytotal = []
+    hxtotal = []
+    hytotal = []
+    satotal = []
+    eatotal = []
+    txtotal = []
+
+    for i in range(trial_num):
+        print(i)
+        target_x = random.uniform(left_x, right_x)
+        elbow_x_list, elbow_y_list, hand_x_list, hand_y_list, shoulder_angle_list, elbow_angle_list \
+            = target_reaching(target_x, line_y, max_iteration = 500, reaching_threshhold = 0.5, step_angle = 3)
+        #arm_animation(target_x,line_y,elbow_x_list, elbow_y_list, hand_x_list, hand_y_list)
+        target_list = [target_x for i in range(len(elbow_x_list))]
+        extotal.extend(elbow_x_list)
+        eytotal.extend(elbow_y_list)
+        hxtotal.extend(hand_x_list)
+        hytotal.extend(elbow_y_list)
+        satotal.extend(shoulder_angle_list)
+        eatotal.extend(elbow_angle_list)
+        txtotal.extend(target_list)
+    print (len(extotal))
+
+    dataframe = pd.DataFrame({'elbow_x':extotal,'elbow_y':eytotal,'hand_x':hxtotal,'hand_y':hytotal,'shoulder_angle':satotal,'elbow_angle':eatotal,'target_x':txtotal})
     dataframe = dataframe.round(2)
     dataframe.to_csv(r"/Users/Jipeng/PycharmProjects/simulated_multisensory_integration/simulated_data.csv")
 
