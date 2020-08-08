@@ -83,9 +83,8 @@ def action_generator(action_index,policy,action_list,shoulder_angle,elbow_angle)
     prob_p /= sum(prob_p)
     while not is_safe:
         temp = np.random.choice(action_index,size=1,p=prob_p)
-        # BUGGY HERE!!!
         while temp[0] in ban:
-            temp = np.random.choice(action_index,size=1,p=prob_p)
+            temp = np.random.choice(action_index,size=1)
         d_shoulder,d_elbow = action_list[temp[0]]
         if min_shoulder <= (shoulder_angle + d_shoulder) <= max_shoulder and min_elbow <= (elbow_angle + d_elbow) <= max_elbow:
             is_safe = True
@@ -96,7 +95,7 @@ def action_generator(action_index,policy,action_list,shoulder_angle,elbow_angle)
     return temp[0]
 
 
-def target_reaching(target_x, target_y, max_iteration = 100, reaching_threshhold = 0.5, step_angle = 3):
+def target_reaching(target_x, target_y, max_iteration = 200, reaching_threshhold = 0.5, step_angle = 3):
     # Data recording
     elbow_x_list = []
     elbow_y_list = []
@@ -190,8 +189,10 @@ def arm_animation(target_x, target_y, elbow_x_list, elbow_y_list, hand_x_list, h
 if __name__ == '__main__':
     # Randomly generate target position
     line_y = 3
-    trial_num = 20
+    trial_num = 50
     left_x, right_x, = valid_position_range(line_y)
+    target_x_l = np.linspace(left_x,right_x,trial_num)
+    print(left_x,right_x)
     extotal = []
     eytotal = []
     hxtotal = []
@@ -202,6 +203,7 @@ if __name__ == '__main__':
 
     for i in range(trial_num):
         print(i)
+        #target_x = target_x_l[i]
         target_x = random.uniform(left_x, right_x)
         elbow_x_list, elbow_y_list, hand_x_list, hand_y_list, shoulder_angle_list, elbow_angle_list \
             = target_reaching(target_x, line_y, max_iteration = 500, reaching_threshhold = 0.5, step_angle = 3)
