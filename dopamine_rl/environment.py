@@ -145,7 +145,7 @@ def target_reaching(target_x, target_y, max_iteration = 200, reaching_threshhold
     return elbow_x_list, elbow_y_list, hand_x_list, hand_y_list, shoulder_angle_list, elbow_angle_list
 
 
-def arm_animation(target_x, target_y, elbow_x_list, elbow_y_list, hand_x_list, hand_y_list):
+def arm_animation(target_x, target_y, elbow_x_list, elbow_y_list, hand_x_list, hand_y_list,idx):
     fig = plt.figure()
     ax = plt.axes(xlim=(-6, 6), ylim=(-6, 6))
     line, = ax.plot([], [], color='r')
@@ -157,7 +157,7 @@ def arm_animation(target_x, target_y, elbow_x_list, elbow_y_list, hand_x_list, h
     def init():
         line1x = [0, elbow_x_list[0], hand_x_list[0]]
         line1y = [0, elbow_y_list[0], hand_y_list[0]]
-        print(1)
+        #print(1)
         line.set_data(line1x, line1y)
         line2.set_data(elbow_x_list[0], elbow_y_list[0])
         line2.set_marker('o')
@@ -180,10 +180,10 @@ def arm_animation(target_x, target_y, elbow_x_list, elbow_y_list, hand_x_list, h
 
     ani = anim.FuncAnimation(fig, animate, range(len(elbow_x_list)), init_func=init, interval=200, repeat=False)
     # ani.save('2-dof-arm.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
-    f = r"/Users/Jipeng/PycharmProjects/simulated_multisensory_integration/2-dof_video.mp4"
+    f = "/Users/Jipeng/PycharmProjects/simulated_multisensory_integration/data/video/2-dof_video_%s.mp4" % idx
     writervideo = anim.FFMpegWriter(fps=60)
     ani.save(f, writer=writervideo)
-    plt.show()
+    #plt.show()
 
 
 if __name__ == '__main__':
@@ -207,7 +207,7 @@ if __name__ == '__main__':
         target_x = random.uniform(left_x, right_x)
         elbow_x_list, elbow_y_list, hand_x_list, hand_y_list, shoulder_angle_list, elbow_angle_list \
             = target_reaching(target_x, line_y, max_iteration = 500, reaching_threshhold = 0.5, step_angle = 3)
-        #arm_animation(target_x,line_y,elbow_x_list, elbow_y_list, hand_x_list, hand_y_list)
+        arm_animation(target_x,line_y,elbow_x_list, elbow_y_list, hand_x_list, hand_y_list,i)
         target_list = [target_x for i in range(len(elbow_x_list))]
         extotal.extend(elbow_x_list)
         eytotal.extend(elbow_y_list)
@@ -220,7 +220,7 @@ if __name__ == '__main__':
 
     dataframe = pd.DataFrame({'elbow_x':extotal,'elbow_y':eytotal,'hand_x':hxtotal,'hand_y':hytotal,'shoulder_angle':satotal,'elbow_angle':eatotal,'target_x':txtotal})
     dataframe = dataframe.round(2)
-    dataframe.to_csv(r"/Users/Jipeng/PycharmProjects/simulated_multisensory_integration/simulated_data.csv")
+    dataframe.to_csv(r"/Users/Jipeng/PycharmProjects/simulated_multisensory_integration/data/simulated_data.csv")
 
 
 
