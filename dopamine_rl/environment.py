@@ -200,6 +200,8 @@ if __name__ == '__main__':
     satotal = []
     eatotal = []
     txtotal = []
+    vitotal = []
+    fitotal = []
 
     for i in range(trial_num):
         print(i)
@@ -207,6 +209,8 @@ if __name__ == '__main__':
         target_x = random.uniform(left_x, right_x)
         elbow_x_list, elbow_y_list, hand_x_list, hand_y_list, shoulder_angle_list, elbow_angle_list \
             = target_reaching(target_x, line_y, max_iteration = 500, reaching_threshhold = 0.5, step_angle = 3)
+        video_index = [i for j in range(len(elbow_x_list))]
+        frame_index = range(len(elbow_x_list))
         arm_animation(target_x,line_y,elbow_x_list, elbow_y_list, hand_x_list, hand_y_list,i)
         target_list = [target_x for i in range(len(elbow_x_list))]
         extotal.extend(elbow_x_list)
@@ -216,9 +220,11 @@ if __name__ == '__main__':
         satotal.extend(shoulder_angle_list)
         eatotal.extend(elbow_angle_list)
         txtotal.extend(target_list)
+        vitotal.extend(video_index)
+        fitotal.extend(frame_index)
     print (len(extotal))
 
-    dataframe = pd.DataFrame({'elbow_x':extotal,'elbow_y':eytotal,'hand_x':hxtotal,'hand_y':hytotal,'shoulder_angle':satotal,'elbow_angle':eatotal,'target_x':txtotal})
+    dataframe = pd.DataFrame({'elbow_x':extotal,'elbow_y':eytotal,'hand_x':hxtotal,'hand_y':hytotal,'shoulder_angle':satotal,'elbow_angle':eatotal,'target_x':txtotal,'video_idx':vitotal,'frame_idx':fitotal})
     dataframe = dataframe.round(2)
     dataframe.to_csv(r"/Users/Jipeng/PycharmProjects/simulated_multisensory_integration/data/simulated_data.csv")
 

@@ -1,27 +1,45 @@
 import sys
 import cv2
+import os
 
-src_path = '/Users/Jipeng/PycharmProjects/simulated_multisensory_integration/data/video/'
+video_src_path = '/Users/Jipeng/PycharmProjects/simulated_multisensory_integration/data/video/'
+image_src_path = '/Users/Jipeng/PycharmProjects/simulated_multisensory_integration/data/images/'
 file_name = '2-dof_video.mp4'
-full_path = src_path+file_name
-def camera_detect(device):
-    camera = cv2.VideoCapture(device)
-    width = int(camera.get(cv2.CAP_PROP_FRAME_WIDTH))
-    height = int(camera.get(cv2.CAP_PROP_FRAME_HEIGHT))
-
+def frame_writer(videopath,imagepath):
+    camera = cv2.VideoCapture(videopath)
+    #width = int(camera.get(cv2.CAP_PROP_FRAME_WIDTH))
+    #height = int(camera.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    index = 0
     if not camera.isOpened():
-        print ('Could not open camera')
+        print ('Could not open video')
         sys.exit()
     while True:
         res, frame = camera.read()
         if not res:
             break
+        image_name = 'img%s.jpg'% index
+        cv2.imwrite(imagepath + image_name, frame)
+        index += 1
+        '''
         cv2.imshow('detection',frame)
         cv2.waitKey(0)
+        cv2.destroyAllWindows()
+        '''
 
+# Convert the video to images. Frames in the same video will be saved into same folder.
 def video2images(idx):
-    file_path = src_path + '2-dof_video_%s.mp4' % idx
-    camera_detect(device=file_path)
+    video_path = video_src_path + '2-dof_video_%s.mp4' % idx
+    image_folder_path = image_src_path + str(idx)
+    if not os.path.exists(image_folder_path):
+        os.mkdir(image_folder_path)
+    frame_writer(video_path,image_folder_path + '/')
 if __name__ == '__main__':
-    for i in range(1,3):
+    # Clear all the files and directories under the root folder.
+    for root, dirs, files in os.walk(image_src_path, topdown=False):
+        for name in files:
+            os.remove(os.path.join(root, name))
+        for name in dirs:
+            os.rmdir(os.path.join(root, name))
+    for i in range(50):
         video2images(i)
+        print ('Video %s is converted'%i)
