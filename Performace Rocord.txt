@@ -32,3 +32,26 @@ Accuracy of position  3 : 100 % and the total number is 23
 Accuracy of position 4 : 0 %
 The true accuracy of the network is 93 %
 The approximate accuracy of the network is 100 %
+
+Multisensory Integration
+class Net(nn.Module):
+    def __init__(self):
+        super(Net, self).__init__()
+        self.fc1 = nn.Linear(2*len(loc_map),50)
+        self.fc2 = nn.Linear(50,len(loc_map))
+    def forward(self,x):
+        x = torch.tanh(self.fc1(x))
+        x = self.fc2(x)
+        return x
+
+Accuracy of position -4 : 100 % and the total number is 115
+Accuracy of position -3 : 100 % and the total number is 123
+Accuracy of position -2 : 100 % and the total number is 140
+Accuracy of position -1 : 99 % and the total number is 176
+Accuracy of position  0 : 100 % and the total number is 450
+Accuracy of position  1 : 100 % and the total number is 610
+Accuracy of position  2 : 100 % and the total number is 596
+Accuracy of position  3 : 100 % and the total number is 1006
+Accuracy of position 4 : 0 %
+The true accuracy of the network is 97 %
+The approximate accuracy of the network is 99 %
