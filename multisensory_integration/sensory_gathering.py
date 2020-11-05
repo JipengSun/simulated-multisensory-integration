@@ -6,6 +6,7 @@ import numpy as np
 video_src_path = '/Users/Jipeng/PycharmProjects/simulated_multisensory_integration/data/video/'
 image_src_path = '/Users/Jipeng/PycharmProjects/simulated_multisensory_integration/data/images/'
 file_name = '2-dof_video.mp4'
+# Extract frames from the video
 def frame_writer(videopath,imagepath):
     camera = cv2.VideoCapture(videopath)
     #width = int(camera.get(cv2.CAP_PROP_FRAME_WIDTH))
